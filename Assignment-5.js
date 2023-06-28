@@ -16,16 +16,16 @@ const app = express();
 //     } 
 //   });
 
-////3&4
-// app.get('/data',(req,res)=>{
-//     const num = req.query.number;
-//     let sum = 0;
-//     for (i=1;i<=num;i++){
-//         sum += i
-//     }
-//     res.send(String(sum));
-//     }
-// )
+//3&4
+app.get('/data',(req,res)=>{
+    const num = req.query.number;
+    let sum = 0;
+    for (i=1;i<=num;i++){
+        sum += i
+    }
+    res.send(String(sum));
+    }
+)
 
 
 
