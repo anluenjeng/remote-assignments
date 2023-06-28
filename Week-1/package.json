@@ -1,0 +1,16 @@
+{
+  "name": "week-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Assignment-5.js",
+  "scripts": {
+    "start": "node Assignment-5.js",
+    "dev": "nodemon Assignment-5.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
