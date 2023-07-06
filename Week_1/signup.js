@@ -31,24 +31,7 @@ pool.getConnection((err) => {
     console.error('Error connecting to MySQL:', err);
     return;
   }
-  console.log('Connected to MySQL');})
-
-
-// 從資料庫中讀取已存在的使用者信箱
-pool.query('SELECT email FROM users', (error, results) => {
-     if (error) {
-       console.error('Error reading data:', error);
-       return;
-     }
-     console.log('Existing user emails:', results);
-  
-// 將已存在的使用者信箱存儲在 existingUserEmails 變數中
-     const existingUserEmails = results.map((row) => row.email);
-
-// 處理 POST 請求的路由
-     app.post('/users/signup', (re, res) => {
-       // 取得請求中的資料
-       const { name, email, password } = req.body;
+  console.log('Connected to MySQL');
 
 //從資料庫中讀取已存在的使用者信箱
 pool.query('SELECT email FROM users', (error, results) => {
@@ -97,12 +80,12 @@ pool.query('SELECT email FROM users', (error, results) => {
             picture: 'https://schoolvoyage.ga/images/123498.png'
           };
 
-          const response = {
-            access_token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ',
-            user: userResponse
-          };
+          //const response = {
+            //access_token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ',
+            //user: userResponse
+          //};
 
-          res.setHeader('Content-Type', 'application/json');
+          //res.setHeader('Content-Type', 'application/json');
           res.status(200).json(response);
         });
       }
