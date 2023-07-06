@@ -9,7 +9,7 @@ const port = 80;
 app.use(bodyParser.json());
 
 // 建立與 MySQL 的連線
-const connection = mysql.createPool({
+const pool = mysql.createPool({
   host: 'localhost',
   port: '3306',
   user: 'root',
@@ -17,8 +17,16 @@ const connection = mysql.createPool({
   database: 'Canchu'
 });
 
+//connection.query(
+  //'SELECT * FROM `users` WHERE `name` = "Page"',
+  //function(err, results, fields) {
+    //console.log(err);
+    //console.log(results); // results contains rows returned by server
+    //console.log(fields); // fields contains extra meta data about results, if available
+ // }
+//);
 // 建立連線
-connection.connect((err) => {
+pool.getConnection((err) => {
   if (err) {
     console.error('Error connecting to MySQL:', err);
     return;
@@ -26,18 +34,18 @@ connection.connect((err) => {
   console.log('Connected to MySQL');})
 
 // 從資料庫中讀取已存在的使用者信箱
-// connection.query('SELECT email FROM users', (error, results) => {
-//     if (error) {
-//       console.error('Error reading data:', error);
-//       return;
-//     }
-//     console.log('Existing user emails:', results);
+connection.query('SELECT email FROM users', (error, results) => {
+     if (error) {
+       console.error('Error reading data:', error);
+       return;
+     }
+     console.log('Existing user emails:', results);
   
-// // 將已存在的使用者信箱存儲在 existingUserEmails 變數中
-//     const existingUserEmails = results.map((row) => row.email);
+// 將已存在的使用者信箱存儲在 existingUserEmails 變數中
+     const existingUserEmails = results.map((row) => row.email);
 
 // // 處理 POST 請求的路由
-//     app.post('/users/signup', (req, res) => {
+//     app.post('/users/signup', (re, res) => {
 //       // 取得請求中的資料
 //       const { name, email, password } = req.body;
 
