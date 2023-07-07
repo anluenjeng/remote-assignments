@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
+const mysqlcon = require('./mysqlcon');
 
 const app = express();
 const port = 3000;
@@ -8,92 +10,65 @@ const port = 3000;
 // 解析 JSON 格式的請求主體
 app.use(bodyParser.json());
 
-// 建立與 MySQL 的連線
+// 建立與 MySQL 的連線池
 const pool = mysql.createPool({
-  host: 'localhost',
-  port: '3306',
-  user: 'root',
-  password: '0000',
-  database: 'Canchu'
+  mysqlcon
 });
 
-//connection.query(
-  //'SELECT * FROM `users` WHERE `name` = "Page"',
-  //function(err, results, fields) {
-    //console.log(err);
-    //console.log(results); // results contains rows returned by server
-    //console.log(fields); // fields contains extra meta data about results, if available
- // }
-//);
-// 建立連線
-pool.getConnection((err) => {
-  if (err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
-  }
-  console.log('Connected to MySQL');})
+(async () => {
+  try {
+    const connection = await pool.getConnection();
+    console.log('Connected to MySQL');
 
+    // 處理 POST 請求的路由
+    app.post('/users/signup', async (req, res) => {
+      try {
+        // 取得請求中的資料
+        const { name, email, password } = req.body;
 
+        // 檢查必填欄位是否存在
+        if (!name || !email || !password) {
+          res.status(400).json({ error: 'Missing fields' });
+          return;
+        }
 
-// 處理 POST 請求的路由
-app.post('/users/signup', (req, res) => {
-  // 取得請求中的資料
-  const { name, email, password } = req.body;
-  
-  // 檢查必填欄位是否存在
-  if (!name || !email || !password) {
-    res.status(400).json({ error: 'Missing fields' });
-  } else {
-    // 從資料庫中讀取已存在的使用者信箱
-    pool.query('SELECT email FROM users', (error, results) => {
-      if (error) {
-        console.error('Error reading data:', error);
-        res.status(500).json({ error: 'Server Error' });
-        return;
-      }
-      
-      // 將已存在的使用者信箱存儲在 existingUserEmails 變數中
-      const existingUserEmails = results.map((row) => row.email);
-      
-      if (existingUserEmails.includes(email)) {
-        res.status(403).json({ error: 'Email Already Exists' });
-      } else {
-        // 插入使用者資料
+        const [rows] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (rows.length > 0) {
+          return res.status(403).json({ error: 'Email already exists' });
+        }
+
+        // 將使用者資料放到資料庫中
+        const hashedPassword = await bcrypt.hash(password, 10); // 使用 bcrypt 對密碼進行加密
         const user = {
           name: name,
           email: email,
-          password: password
+          password: hashedPassword
         };
 
-        connection.query('INSERT INTO users SET ?', user, (error, results) => {
-          if (error) {
-            console.error('Error inserting data:', error);
-            res.status(500).json({ error: 'Server Error' });
-            return;
-          }
-          console.log('Data inserted successfully');
+        const result = await connection.query('INSERT INTO users SET ?', user);
+        const insertedUserId = result[0].insertId; // 取得插入的 userId
 
-          // 假設註冊成功，回傳成功訊息和使用者資訊
-          const userResponse = {
-            id: userId,
-            provider: 'facebook',
-            name: name,
-            email: email,
-            picture: 'https://schoolvoyage.ga/images/123498.png'
-          };
+        const userResponse = {
+          id: insertedUserId,
+          provider: 'facebook',
+          name: name,
+          email: email,
+          picture: 'https://schoolvoyage.ga/images/123498.png'
+        };
 
-          const response = {
-            access_token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6joiYXJ0aHVIjoxNjEzNTY3MzA0fQ.6EPCOfBGynidAfpVqlvbHGWHCJ5LZLtKvPaQ',
-            user: userResponse
-          };
-
-          res.setHeader('Content-Type', 'application/json');
-          res.status(200).json(response);
-        });
+        res.status(200).json(userResponse);
+      } catch (error) {
+        console.error('Error message:', error.message);
+        res.status(500).json({ message: 'Server Error' });
       }
     });
+
+    // 啟動伺服器
+    app.listen(port, () => {
+      console.log(`Example app listening on port ${port}`);
+    });
+  } catch (error) {
+    console.error('Error connecting to MySQL:', error);
   }
-});
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+})();
+
