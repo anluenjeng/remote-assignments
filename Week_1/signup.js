@@ -11,9 +11,7 @@ const port = 3000;
 app.use(bodyParser.json());
 
 // 建立與 MySQL 的連線池
-const pool = mysql.createPool({
-  mysqlcon
-});
+const pool = mysql.createPool(mysqlcon);
 
 (async () => {
   try {
